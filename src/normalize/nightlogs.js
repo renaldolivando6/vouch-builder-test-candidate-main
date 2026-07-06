@@ -60,6 +60,10 @@ function numberLines(text) {
 }
 
 export async function normalizeNightLogs(sourceText, { shiftId = null, sourceName = 'night-logs.md' } = {}) {
+  // Normalize line endings so the prompt (and thus the response cache key) is
+  // identical across OSes — otherwise a cache built on Windows (CRLF) misses on
+  // Render's Linux (LF).
+  sourceText = String(sourceText).replace(/\r\n?/g, '\n');
   const { lines, numbered } = numberLines(sourceText);
   const N = lines.length;
 

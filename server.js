@@ -27,6 +27,9 @@ app.get('/healthz', (req, res) => {
   res.json({ status: 'ok', service: 'night-shift-handover' });
 });
 
+// Root -> the human-readable handover, so the bare URL isn't a 404.
+app.get('/', (req, res) => res.redirect('/handover.html'));
+
 // Core handler: build a handover from the given input and respond as JSON or HTML.
 async function handle(req, res, input, wantsHtml) {
   const reqId = randomUUID();
