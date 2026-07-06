@@ -158,7 +158,11 @@ Grounding is enforced at each boundary, not hoped for:
 
 - **Runtime:** Node.js + Express. No DB, no Docker.
 - **LLM:** Google Gemini, model id `gemini-3.5-flash` (verified working via REST).
-  SDK: `@google/genai`. Called only in stages [1-prose] and [3].
+  Called via the REST `generateContent` endpoint using built-in `fetch` (no SDK —
+  avoids version unknowns; see `src/gemini.js`). Used only in stages [1-prose] and [3].
+- **Prose grounding gate:** every LLM-extracted item must include a verbatim
+  `quote`; code verifies the quote exists in the source text, else flags
+  `unverified_quote`. See `src/normalize/nightlogs.js`.
 - **Config via env** (never committed):
   - `GEMINI_API_KEY` — the key. Local: `.env` (gitignored). Prod: Render dashboard.
   - `GEMINI_MODEL` — default `gemini-3.5-flash`.
