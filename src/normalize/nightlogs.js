@@ -16,6 +16,11 @@ const SYSTEM = `You are a data-extraction component in a hotel night-shift hando
 The user message is a free-text night log written by relief staff, with a line number
 prefixed to every line as "<n>| ". The text may mix English and other languages (e.g. Chinese).
 
+The log may contain document metadata — a title, section headings, and preamble or
+blockquote text that DESCRIBES the log itself (often near the top). This is NOT shift
+activity — do NOT extract it. Extract only concrete operational events, issues, or
+handover notes from the actual shift.
+
 Extract discrete operational items. For each item:
 - Extract ONLY what is explicitly stated. Do NOT infer, assume, or add facts.
 - Identify the source lines the item comes from and return them as "start_line" and
