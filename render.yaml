@@ -1,0 +1,19 @@
+# Render deployment config (Blueprint).
+# Deploys the Node service straight from the repo — no Docker.
+# GEMINI_API_KEY is intentionally NOT here; set it in the Render dashboard
+# (Environment tab) so the secret never lives in the repo.
+services:
+  - type: web
+    name: night-shift-handover
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false # set manually in the dashboard (secret)
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
