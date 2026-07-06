@@ -33,3 +33,8 @@ export function shiftLabel(shiftId) {
   if (!shiftId) return 'unknown shift';
   return `night of ${shiftId} → ${addDays(shiftId, 1)}`;
 }
+
+// The morning a shift hands over to (the day after the night-of date).
+export function morningAfter(shiftId) {
+  return shiftId ? addDays(shiftId, 1) : null;
+}
