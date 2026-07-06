@@ -33,5 +33,6 @@ pnpm-debug.log*
 
 # Misc
 .cache/
+.cache/gemini/
 tmp/
 *.local

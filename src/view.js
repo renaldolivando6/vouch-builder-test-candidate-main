@@ -1,6 +1,6 @@
-// Minimal HTML view — utility over beauty. One inline <style>, no framework,
-// no build step. Three colour-coded sections; every line shows its source
-// citation and any flags so the manager can trust and trace it.
+// HTML view — clean, professional console styling (AWS-console inspired):
+// light neutral surface, severity-labelled sections, flag badges, monospace
+// source citations. Server-rendered string; no framework, no client JS.
 
 function esc(s) {
   return String(s ?? '')
@@ -10,58 +10,114 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
-function itemHtml(item) {
-  const flags = item.flags.length
-    ? ` ${item.flags.map((f) => `<span class="flag">${esc(f)}</span>`).join(' ')}`
-    : '';
-  const grounding = item.ungrounded ? ' <span class="flag warn">unverified — check source</span>' : '';
-  const refs = item.source_refs.length
-    ? `<span class="cite">${item.source_refs.map(esc).join(', ')}</span>`
-    : '';
-  return `<li><span class="line">${esc(item.line)}</span>${flags}${grounding} ${refs}</li>`;
+// Human-readable flag labels.
+const FLAG_LABELS = {
+  injection_suspected: 'Injection suspected',
+  unsupported_action: 'Unsupported action',
+  contradiction: 'Contradiction',
+  uncertain: 'Uncertain',
+  unverified_span: 'Unverified source',
+};
+const flagLabel = (f) => FLAG_LABELS[f] || f.replace(/_/g, ' ');
+
+// Severity section metadata (no emoji; professional labels).
+const SECTIONS = [
+  { key: 'on_fire', label: 'Immediate action', cls: 'sev-critical' },
+  { key: 'pending', label: 'Needs follow-up', cls: 'sev-warning' },
+  { key: 'fyi', label: 'Informational', cls: 'sev-info' },
+];
+
+function badgeHtml(item) {
+  const badges = item.flags.map((f) => `<span class="badge">${esc(flagLabel(f))}</span>`);
+  if (item.ungrounded) badges.push('<span class="badge badge-alert">Unverified — check source</span>');
+  return badges.join('');
 }
 
-function sectionHtml(title, cls, items) {
-  if (!items.length) return `<section class="${cls} empty"><h2>${esc(title)}</h2><p class="none">none</p></section>`;
-  return `<section class="${cls}">
-    <h2>${esc(title)} <span class="count">${items.length}</span></h2>
-    <ul>${items.map(itemHtml).join('\n')}</ul>
-  </section>`;
+function itemHtml(item) {
+  const src = item.source_refs.length
+    ? `<div class="src">Source: ${item.source_refs.map((r) => `<code>${esc(r)}</code>`).join(' ')}</div>`
+    : '';
+  const badges = badgeHtml(item);
+  return `<li class="item">
+    <div class="item-body">${esc(item.line)} ${badges}</div>
+    ${src}
+  </li>`;
+}
+
+function sectionHtml(section, items) {
+  const header = `<div class="sec-head">
+      <span class="sev ${section.cls}">${esc(section.label)}</span>
+      <span class="sec-count">${items.length}</span>
+    </div>`;
+  const body = items.length
+    ? `<ul class="items">${items.map(itemHtml).join('')}</ul>`
+    : `<p class="none">No items.</p>`;
+  return `<section class="card">${header}${body}</section>`;
 }
 
 export function handoverToHtml(result) {
   const h = result.handover;
   const hotelName = esc(result.hotel?.name || 'Hotel');
+  const sections = SECTIONS.map((s) => sectionHtml(s, h[s.key] || [])).join('');
+
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Night Handover — ${hotelName}</title>
+<title>Night-Shift Handover — ${hotelName}</title>
 <style>
-  :root { color-scheme: light dark; }
-  body { font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 780px; margin: 24px auto; padding: 0 16px; }
-  header { border-bottom: 2px solid currentColor; padding-bottom: 8px; margin-bottom: 16px; }
-  h1 { font-size: 1.3rem; margin: 0; }
-  .meta { opacity: 0.7; font-size: 0.85rem; margin-top: 4px; }
-  section { border-left: 5px solid #999; padding: 4px 0 4px 14px; margin: 18px 0; }
-  section h2 { font-size: 1.05rem; margin: 0 0 8px; }
-  .on_fire { border-color: #d93025; } .pending { border-color: #e8a800; } .fyi { border-color: #8a8a8a; }
-  .count { font-weight: normal; opacity: 0.6; font-size: 0.85rem; }
-  ul { margin: 0; padding-left: 18px; } li { margin: 6px 0; }
-  .line { font-weight: 500; }
-  .cite { font-size: 0.78rem; opacity: 0.6; font-family: ui-monospace, monospace; }
-  .flag { font-size: 0.72rem; background: #8884; border-radius: 4px; padding: 1px 6px; }
-  .flag.warn { background: #d93025; color: #fff; }
-  .none { opacity: 0.5; font-style: italic; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #f2f3f3; color: #16191f;
+    font: 14px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 48px; }
+  header.top { background: #16191f; color: #fff; padding: 18px 20px; }
+  header.top .inner { max-width: 900px; margin: 0 auto; }
+  header.top h1 { font-size: 1.15rem; font-weight: 600; margin: 0; letter-spacing: 0.2px; }
+  header.top .meta { color: #b9c0c9; font-size: 0.82rem; margin-top: 4px; }
+
+  .card {
+    background: #fff; border: 1px solid #d5dbdb; border-radius: 8px;
+    margin: 16px 0; padding: 0; overflow: hidden;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+  }
+  .sec-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-bottom: 1px solid #eaeded; background: #fafbfc;
+  }
+  .sev {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+    padding: 3px 9px; border-radius: 4px; border: 1px solid transparent;
+  }
+  .sev-critical { color: #d13212; background: #fdf0ee; border-color: #f5c4b8; }
+  .sev-warning  { color: #8a6100; background: #fdf6e3; border-color: #f0d9a0; }
+  .sev-info     { color: #0972d3; background: #eff6fd; border-color: #b8d7f5; }
+  .sec-count { margin-left: auto; color: #5f6b7a; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+
+  ul.items { list-style: none; margin: 0; padding: 0; }
+  .item { padding: 12px 16px; border-bottom: 1px solid #eaeded; }
+  .item:last-child { border-bottom: none; }
+  .item-body { font-weight: 500; }
+  .src { margin-top: 5px; color: #5f6b7a; font-size: 0.78rem; }
+  .src code { background: #f2f3f3; border: 1px solid #e4e7e7; border-radius: 3px; padding: 0 5px; font-size: 0.92em; }
+
+  .badge {
+    display: inline-block; font-size: 0.7rem; font-weight: 600; vertical-align: middle;
+    color: #5f6b7a; background: #f2f3f3; border: 1px solid #d5dbdb;
+    border-radius: 4px; padding: 1px 7px; margin-left: 4px;
+  }
+  .badge-alert { color: #d13212; background: #fdf0ee; border-color: #f5c4b8; }
+  .none { color: #5f6b7a; font-style: italic; margin: 0; padding: 14px 16px; }
+  footer { color: #5f6b7a; font-size: 0.78rem; margin-top: 20px; }
 </style></head>
 <body>
-  <header>
-    <h1>🌙 Night-Shift Handover — ${hotelName}</h1>
-    <div class="meta">Morning of ${esc(result.for_morning)} · shift ${esc(result.generated_for_shift)} ·
-      ${result.thread_count} issues from ${result.observation_count} events</div>
-  </header>
-  ${sectionHtml('🔴 On fire — act now', 'on_fire', h.on_fire)}
-  ${sectionHtml('🟡 Pending — decide / follow up today', 'pending', h.pending)}
-  ${sectionHtml('⚪ FYI — awareness only', 'fyi', h.fyi)}
-  <footer class="meta">Every line traces to source data. Flags mark items needing verification.</footer>
+  <header class="top"><div class="inner">
+    <h1>Night-Shift Handover — ${hotelName}</h1>
+    <div class="meta">Morning of ${esc(result.for_morning)} · shift ${esc(result.generated_for_shift)} · ${result.thread_count} issues reconciled from ${result.observation_count} events</div>
+  </div></header>
+  <div class="wrap">
+    ${sections}
+    <footer>Every line traces to source data (see citations). Badges mark items requiring verification before action.</footer>
+  </div>
 </body></html>`;
 }
