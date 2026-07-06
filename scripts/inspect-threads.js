@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { readFileSync } from 'node:fs';
 import { normalizeEvents } from '../src/normalize/events.js';
 import { normalizeNightLogs } from '../src/normalize/nightlogs.js';
+import { flagObservations } from '../src/flag.js';
 import { linkThreads } from '../src/link.js';
 
 const events = JSON.parse(readFileSync('data/events.json', 'utf8'));
@@ -13,7 +14,7 @@ const logText = readFileSync('data/night-logs.md', 'utf8');
 
 const jsonObs = normalizeEvents(events);
 const proseObs = await normalizeNightLogs(logText, { shiftId: '2026-05-27' });
-const all = [...jsonObs, ...proseObs];
+const all = flagObservations([...jsonObs, ...proseObs]);
 
 const threads = linkThreads(all);
 
