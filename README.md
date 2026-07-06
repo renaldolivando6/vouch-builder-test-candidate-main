@@ -33,6 +33,25 @@ curl https://vouch-builder-test-candidate-main.onrender.com/healthz
 > which is rate-limited; if quota is momentarily exhausted the service degrades
 > gracefully to deterministic (non-LLM) lines rather than failing (see Grounding).
 
+## Results
+
+Captured artifacts live in [`result/`](result/).
+
+**Deployed handover (HTML):**
+
+![Handover UI](result/ui%20result.png)
+
+**Full pipeline output (CLI) — buckets, action lines, and source citations:**
+
+![CLI output](result/backend%20CLI%20result.png)
+
+| Artifact | File |
+|---|---|
+| Deployed HTML handover | [`result/ui result.png`](result/ui%20result.png) |
+| Full pipeline (CLI) output | [`result/backend CLI result.png`](result/backend%20CLI%20result.png) |
+| GitHub repo | [`result/github repo.png`](result/github%20repo.png) |
+| **AI conversation export** (planning + debugging session) | [`result/claude full chat history.txt`](result/claude%20full%20chat%20history.txt), [`result/claude chat history.png`](result/claude%20chat%20history.png) |
+
 ## What it does
 
 1. **Ingests two formats** — `data/events.json` (structured) and `data/night-logs.md`
