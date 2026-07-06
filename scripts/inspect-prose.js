@@ -20,6 +20,7 @@ for (const o of observations) {
   );
   console.log(`   summary: ${o.summary}`);
   if (o.translation) console.log(`   translation: ${o.translation}`);
-  console.log(`   quote: "${o.source.raw_text}"`);
+  console.log(`   source: ${o.source.ref}`);
+  console.log(`   raw_text: "${o.source.raw_text}"`);
   console.log('');
 }

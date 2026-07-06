@@ -160,9 +160,14 @@ Grounding is enforced at each boundary, not hoped for:
 - **LLM:** Google Gemini, model id `gemini-3.5-flash` (verified working via REST).
   Called via the REST `generateContent` endpoint using built-in `fetch` (no SDK —
   avoids version unknowns; see `src/gemini.js`). Used only in stages [1-prose] and [3].
-- **Prose grounding gate:** every LLM-extracted item must include a verbatim
-  `quote`; code verifies the quote exists in the source text, else flags
-  `unverified_quote`. See `src/normalize/nightlogs.js`.
+- **Prose grounding gate — line-number anchoring:** the log is sent to the model
+  with a line number on every line; the model returns `start_line`/`end_line`
+  (digits, which it reproduces reliably) instead of copying text; **code** slices
+  those lines from the real source, so `raw_text` is always verbatim in any
+  language. Invalid ranges are flagged `unverified_span`. This replaced an earlier
+  "model copies a verbatim quote" approach, which the model mangled on Chinese
+  (added characters) — a real anti-hallucination catch worth noting in DECISIONS.md.
+  See `src/normalize/nightlogs.js`.
 - **Config via env** (never committed):
   - `GEMINI_API_KEY` — the key. Local: `.env` (gitignored). Prod: Render dashboard.
   - `GEMINI_MODEL` — default `gemini-3.5-flash`.
